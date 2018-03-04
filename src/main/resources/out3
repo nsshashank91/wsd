@@ -1,0 +1,16 @@
+<Sentence id="1">			
+1	((	NP	<fs af='ಗಜಲಕ್ಷ್ಮಿಗೆ,unk,,,,,,' head="ಗಜಲಕ್ಷ್ಮಿಗೆ"  poslcat="NM">
+1.1	ಗಜಲಕ್ಷ್ಮಿಗೆ	NN	<fs af='ಗಜಲಕ್ಷ್ಮಿಗೆ,unk,,,,,,' name="ಗಜಲಕ್ಷ್ಮಿಗೆ"  poslcat="NM">
+	))		
+2	((	NP	<fs af='ಅಳತೆ,n,n,sg,,o,ಅ,a' head="ಅಳತೆಯ">
+2.1	ಐದು	QC	<fs af='ಐದು,n,n,sg,,d,0,0' poslcat="NM">
+2.2	ಗಜದ	NN	<fs af='ಗಜ,n,n,sg,,o,ಅ,a'>
+2.3	ಅಳತೆಯ	NN	<fs af='ಅಳತೆ,n,n,sg,,o,ಅ,a' name="ಅಳತೆಯ">
+	))		
+3	((	VGF	<fs af='ಸೀರೆ,n,n,sg,,d,0,0' head="ಸೀರೆ"  poslcat="NM">
+3.1	ಸೀರೆ	VM	<fs af='ಸೀರೆ,n,n,sg,,d,0,0' name="ಸೀರೆ"  poslcat="NM">
+	))		
+4	((	VGF	<fs af='ಹಾಕು,v,any,any,any,,ಅಲ್ಪಡಲಾಯಿತು,alpadalAyiwu' head="ಹಾಕಲಾಯಿತು">
+4.1	ಹಾಕಲಾಯಿತು	VM	<fs af='ಹಾಕು,v,any,any,any,,ಅಲ್ಪಡಲಾಯಿತು,alpadalAyiwu' name="ಹಾಕಲಾಯಿತು">
+	))		
+</Sentence>			
