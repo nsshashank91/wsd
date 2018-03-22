@@ -3,9 +3,13 @@ package com.shash.kannada.wsd;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,18 +17,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Multiset;
 import com.jcraft.jsch.JSchException;
 
-/*@RestController
-@RequestMapping("/kannada/")*/
-public class DisambiguatorController {
-	
+@RestController
+@RequestMapping("/kannada/")
+public class KannadaController {
+
 	private String input;
 
 	private String polysemyWord;
@@ -34,6 +40,8 @@ public class DisambiguatorController {
 	private Multimap<String, String> word_pos_map;
 
 	private List<String[]> semanticsList;
+	
+	private List<Map<String,String>> semanticSet;
 
 	private LinkedList<String> inputLinkedList;
 
@@ -47,9 +55,117 @@ public class DisambiguatorController {
 
 	private Map<String, String> rootWords;
 	
+	private List<String> rootList;
+	
+	@RequestMapping("semantics")
+	private String moorneAataEegaShuru() throws IOException {
+		BufferedReader brInput = new BufferedReader(
+				new FileReader(
+						"C:\\Users\\shashank\\Documents\\wsd\\wsd\\src\\main\\resources\\message.txt"));
+		String input = "";
+		while (true) {
+			String line = brInput.readLine();
+			if (line == null)
+				break;
+			input = input + line;
+		}
+		String[] synsets = null;
+		if (input.contains("----------------------------")) {
+			synsets = input.split("----------------------------");
+		}
+		
+		semanticSet = new ArrayList<Map<String,String>>();
+		if (synsets != null) {
+			String[] semanticValues = null;
+			
+			for (String synset : synsets) {
+				// System.out.println(synset);
+				if (synset.contains("::::::")) {
+					String[] synsetFragments = synset.split("::::::");
+					String posWord = synsetFragments[0];
+					String targetWord = synsetFragments[1];
+					this.polysemyWord = targetWord;
+					String semantics = synsetFragments[2];
+					Map<String, String> semanticPosMap = new HashMap<String, String>();
+					semanticPosMap.put(semantics, posWord);
+					semanticSet.add(semanticPosMap);
+				}
+			}
+			for(Map<String, String> posSemanticMapObj: semanticSet){
+				Iterator<Entry<String, String>> iterator = posSemanticMapObj.entrySet().iterator();
+				Entry<String, String> next = iterator.next();
+				System.out.println("Semantics = "+next.getKey());
+				System.out.println("POS = "+next.getValue());
+			}
+		}
+		return "semantics obtained";
+	}
+	
+	private String innondAataEegaShuru() throws IOException {
+		BufferedReader brInput = new BufferedReader(
+				new FileReader(
+						"C:\\Users\\shashank\\Documents\\wsd\\wsd\\src\\main\\resources\\message.txt"));
+		String input = "";
+		while (true) {
+			String line = brInput.readLine();
+			if (line == null)
+				break;
+			input = input + line;
+		}
+		// System.out.println(input);
+		String[] synsets = null;
+		if (input.contains("----------------------------")) {
+			synsets = input.split("----------------------------");
+		}
+		
+		semanticsList = new ArrayList<String[]>();
+		if (synsets != null) {
+			String[] semanticValues = null;
+			for (String synset : synsets) {
+				// System.out.println(synset);
+				if (synset.contains("::::::")) {
+					String[] synsetFragments = synset.split("::::::");
+					String posWord = synsetFragments[0];
+					String targetWord = synsetFragments[1];
+					String semantics = synsetFragments[2];
+					String[] semanticUnitArray = new String[2];
+					semanticUnitArray[0] = posWord;
+					semanticUnitArray[1] = semantics;
+					semanticsList.add(semanticUnitArray);
+				}
+			}
+			boolean nounFlag=false;
+			boolean verbFlag=false;
+			for (String[] semanticUnit : semanticsList) {
+				System.out.println("POS = " + semanticUnit[0]);
+				System.out.println("Semantic = " + semanticUnit[1]);
+				if(semanticUnit[0].equals("noun")){
+					nounFlag=true;
+					String semanticValue = semanticUnit[1];
+					semanticValue = semanticValue.replaceAll("[\".,()]", "");
+					if(semanticValue.contains(rootList.get(0))){
+						semanticValue = semanticValue.replaceAll(rootList.get(0), "");
+					}
+					semanticValues = semanticValue.split(" ");
+					for(int i=0;i<semanticValues.length;i++){
+						System.out.println("********"+semanticValues[i]+"********");
+					}
+				}
+				if(semanticUnit[0].equals("verb")){
+					verbFlag=true;
+				}
+			}
+			if(nounFlag==true&&verbFlag==true){
+				System.out.println("Polysemy Word is "+rootList.get(0));
+			}
+			
+		}
+		return "semantics obtained";
+	}
+
 	@RequestMapping("disambiguate")
 	private String aataEegaShuru() throws IOException {
-		this.obtainSemanticNet();
+		//this.obtainSemanticNet();
 		System.out.println("*********************");
 		System.out.println("Input is " + inputLinkedList.toString());
 		System.out.println("Polysemy word = " + polysemyWord);
@@ -427,29 +543,58 @@ public class DisambiguatorController {
 			String nounWord = nounSenseList.get(i);
 			if (nounWord.equals(polysemyWord)) {
 				String nounLinkedWord = nounSenseList.get(i + 1);
-				if (nounLinkedWord.endsWith("ನು")||nounLinkedWord.endsWith("ಳು")||nounLinkedWord.endsWith("ರು")
-						|| nounLinkedWord.endsWith("ನನ್ನು")||nounLinkedWord.endsWith("ಳನ್ನು")||nounLinkedWord.endsWith("ರನ್ನು")
-						|| nounLinkedWord.endsWith("ನನ್ನ")||nounLinkedWord.endsWith("ಳನ್ನ")||nounLinkedWord.endsWith("ರನ್ನ")
-						|| nounLinkedWord.endsWith("ನಿಂದ")|| nounLinkedWord.endsWith("ಳಿಂದ")||nounLinkedWord.endsWith("ರಿಂದ")
-						|| nounLinkedWord.endsWith("ನಿಗೆ")||nounLinkedWord.endsWith("ಳಿಗೆ")||nounLinkedWord.endsWith("ರಿಗೆ")
+				if (nounLinkedWord.endsWith("ನು")
+						|| nounLinkedWord.endsWith("ಳು")
+						|| nounLinkedWord.endsWith("ರು")
+						|| nounLinkedWord.endsWith("ನನ್ನು")
+						|| nounLinkedWord.endsWith("ಳನ್ನು")
+						|| nounLinkedWord.endsWith("ರನ್ನು")
+						|| nounLinkedWord.endsWith("ನನ್ನ")
+						|| nounLinkedWord.endsWith("ಳನ್ನ")
+						|| nounLinkedWord.endsWith("ರನ್ನ")
+						|| nounLinkedWord.endsWith("ನಿಂದ")
+						|| nounLinkedWord.endsWith("ಳಿಂದ")
+						|| nounLinkedWord.endsWith("ರಿಂದ")
+						|| nounLinkedWord.endsWith("ನಿಗೆ")
+						|| nounLinkedWord.endsWith("ಳಿಗೆ")
+						|| nounLinkedWord.endsWith("ರಿಗೆ")
 						|| nounLinkedWord.endsWith("ಗೆ")
-						|| nounLinkedWord.endsWith("ನ")||nounLinkedWord.endsWith("ಳ")||nounLinkedWord.endsWith("ರ")
-						|| nounLinkedWord.endsWith("ನಲ್ಲಿ")||nounLinkedWord.endsWith("ಳಲ್ಲಿ")||nounLinkedWord.endsWith("ರಲ್ಲಿ")
-						|| nounLinkedWord.endsWith("ನೇ")||nounLinkedWord.endsWith("ಳೇ")||nounLinkedWord.endsWith("ರೇ")) {
-					System.out.println("Matched meaning is ವ್ಯಕ್ತಿ  ಅಥವಾ ಪ್ರಾಣಿ ಅಥವಾ ವಸ್ತು ಅಥವಾ ಜಾಗ");
+						|| nounLinkedWord.endsWith("ನ")
+						|| nounLinkedWord.endsWith("ಳ")
+						|| nounLinkedWord.endsWith("ರ")
+						|| nounLinkedWord.endsWith("ನಲ್ಲಿ")
+						|| nounLinkedWord.endsWith("ಳಲ್ಲಿ")
+						|| nounLinkedWord.endsWith("ರಲ್ಲಿ")
+						|| nounLinkedWord.endsWith("ನೇ")
+						|| nounLinkedWord.endsWith("ಳೇ")
+						|| nounLinkedWord.endsWith("ರೇ")) {
+					System.out
+							.println("Matched meaning is ವ್ಯಕ್ತಿ  ಅಥವಾ ಪ್ರಾಣಿ ಅಥವಾ ವಸ್ತು ಅಥವಾ ಜಾಗ");
 				}
 				break;
 			} else if (nounWord.contains(polysemyWord)) {
-				if (nounWord.endsWith("ನು")||nounWord.endsWith("ಳು")||nounWord.endsWith("ರು")
-						|| nounWord.endsWith("ನನ್ನು")||nounWord.endsWith("ಳನ್ನು")||nounWord.endsWith("ರನ್ನು")
-						|| nounWord.endsWith("ನನ್ನ")||nounWord.endsWith("ಳನ್ನ")||nounWord.endsWith("ರನ್ನ")
-						|| nounWord.endsWith("ನಿಂದ")|| nounWord.endsWith("ಳಿಂದ")||nounWord.endsWith("ರಿಂದ")
-						|| nounWord.endsWith("ನಿಗೆ")||nounWord.endsWith("ಳಿಗೆ")||nounWord.endsWith("ರಿಗೆ")
-						|| nounWord.endsWith("ಗೆ")
-						|| nounWord.endsWith("ನ")||nounWord.endsWith("ಳ")||nounWord.endsWith("ರ")
-						|| nounWord.endsWith("ನಲ್ಲಿ")||nounWord.endsWith("ಳಲ್ಲಿ")||nounWord.endsWith("ರಲ್ಲಿ")
-						|| nounWord.endsWith("ನೇ")||nounWord.endsWith("ಳೇ")||nounWord.endsWith("ರೇ")) {
-					System.out.println("Matched meaning is ವ್ಯಕ್ತಿ  ಅಥವಾ ಪ್ರಾಣಿ ಅಥವಾ ವಸ್ತು ಅಥವಾ ಜಾಗ");
+				if (nounWord.endsWith("ನು") || nounWord.endsWith("ಳು")
+						|| nounWord.endsWith("ರು")
+						|| nounWord.endsWith("ನನ್ನು")
+						|| nounWord.endsWith("ಳನ್ನು")
+						|| nounWord.endsWith("ರನ್ನು")
+						|| nounWord.endsWith("ನನ್ನ")
+						|| nounWord.endsWith("ಳನ್ನ")
+						|| nounWord.endsWith("ರನ್ನ")
+						|| nounWord.endsWith("ನಿಂದ")
+						|| nounWord.endsWith("ಳಿಂದ")
+						|| nounWord.endsWith("ರಿಂದ")
+						|| nounWord.endsWith("ನಿಗೆ")
+						|| nounWord.endsWith("ಳಿಗೆ")
+						|| nounWord.endsWith("ರಿಗೆ") || nounWord.endsWith("ಗೆ")
+						|| nounWord.endsWith("ನ") || nounWord.endsWith("ಳ")
+						|| nounWord.endsWith("ರ") || nounWord.endsWith("ನಲ್ಲಿ")
+						|| nounWord.endsWith("ಳಲ್ಲಿ")
+						|| nounWord.endsWith("ರಲ್ಲಿ")
+						|| nounWord.endsWith("ನೇ") || nounWord.endsWith("ಳೇ")
+						|| nounWord.endsWith("ರೇ")) {
+					System.out
+							.println("Matched meaning is ವ್ಯಕ್ತಿ  ಅಥವಾ ಪ್ರಾಣಿ ಅಥವಾ ವಸ್ತು ಅಥವಾ ಜಾಗ");
 				}
 				break;
 			}
@@ -457,14 +602,18 @@ public class DisambiguatorController {
 	}
 
 	private void readFromWordNet() {
-		ReadFromWordnet readWordNet = new ReadFromWordnet();
-		readWordNet.readFromWordNet(polysemyWord);
+		/*
+		 * ReadFromWordnet readWordNet = new ReadFromWordnet();
+		 * readWordNet.readFromWordNet(polysemyWord);
+		 */
 
 	}
 
 	private void identifyPolysemyWord() throws IOException {
 		List<String> inputWordsList = null;
-		BufferedReader brInput = new BufferedReader(new FileReader("C:\\Users\\shashank\\Documents\\wsd\\wsd\\src\\main\\resources\\sen31"));
+		BufferedReader brInput = new BufferedReader(
+				new FileReader(
+						"C:\\Users\\shashank\\Documents\\wsd\\wsd\\src\\main\\resources\\sen31"));
 		input = brInput.readLine();
 		input = input.replaceAll("[-+.^:,]", "");
 		String[] splitWords = input.split(" ");
@@ -556,7 +705,9 @@ public class DisambiguatorController {
 	private void extractPOSTagging() throws IOException {
 		rootWords = new LinkedHashMap<String, String>();
 		List<String> inputWordsList = null;
-		BufferedReader brInput = new BufferedReader(new FileReader("C:\\Users\\shashank\\Documents\\wsd\\wsd\\src\\main\\resources\\sen31"));
+		BufferedReader brInput = new BufferedReader(
+				new FileReader(
+						"C:\\Users\\shashank\\Documents\\wsd\\wsd\\src\\main\\resources\\sen31"));
 		while (true) {
 			String line = brInput.readLine();
 			if (line == null)
@@ -567,7 +718,9 @@ public class DisambiguatorController {
 			// System.out.println(inputWordsList);
 		}
 		word_pos_map = LinkedListMultimap.create();
-		BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\shashank\\Documents\\wsd\\wsd\\src\\main\\resources\\out3"));
+		BufferedReader br = new BufferedReader(
+				new FileReader(
+						"C:\\Users\\shashank\\Documents\\wsd\\wsd\\src\\main\\resources\\out3"));
 		while (true) {
 			String line = br.readLine();
 			if (line == null)
@@ -612,14 +765,45 @@ public class DisambiguatorController {
 		TagPos schObj = new TagPos();
 		schObj.sshCon(config);
 		this.extractPOSTagging();
-		this.identifyPolysemyWord();
-		this.readFromWordNet();
+		this.singlePolysemyWord();
+		// this.identifyPolysemyWord();
+		// this.readFromWordNet();
 		return "preprocessed";
 	}
 
+	private void singlePolysemyWord() {
+		this.deleteExistingFiles();
+		ReadFromWordnet readWordNet = new ReadFromWordnet();
+		rootList = new ArrayList<String>();
+		Set<Entry<String, String>> rootWordEntires = rootWords.entrySet();
+		AtomicInteger count = new AtomicInteger(0);
+		rootWordEntires.forEach((item) -> {
+			System.out.println(item.getKey() + " :: " + item.getValue());
+			rootList.add(item.getValue());
+			readWordNet.readFromWordNet(item.getValue(), "semantic"+count.incrementAndGet()+".txt");
+		});
+	}
+
+	private boolean deleteExistingFiles() {
+		boolean flag = true;
+		int i=0;
+		while(flag){
+			try {
+				i++;
+				Files.delete(Paths.get("C:\\Users\\shashank\\Documents\\inh\\KannadaPolysemyImplementation2\\semantic"+i+".txt"));
+			} catch (IOException e) {
+				e.printStackTrace();
+				flag = false;
+			}
+		}
+		
+		return true;
+	}
+
 	private void obtainSemanticNet() throws IOException {
-		BufferedReader brInput = new BufferedReader(new FileReader(
-				"C:\\Users\\shashank\\Documents\\wsd\\wsd\\src\\main\\resources\\message.txt"));
+		BufferedReader brInput = new BufferedReader(
+				new FileReader(
+						"C:\\Users\\shashank\\Documents\\wsd\\wsd\\src\\main\\resources\\message.txt"));
 		String input = "";
 		while (true) {
 			String line = brInput.readLine();
@@ -644,7 +828,7 @@ public class DisambiguatorController {
 					String gloss = synsetFragments[2];
 					String example = synsetFragments[3];
 					example = example.replaceAll("[\".]", "");
-					String semantics = synonyms + " " + gloss+ " "+example;
+					String semantics = synonyms + " " + gloss + " " + example;
 					String[] semanticUnitArray = new String[2];
 					semanticUnitArray[0] = pos;
 					semanticUnitArray[1] = semantics;
@@ -657,20 +841,20 @@ public class DisambiguatorController {
 				System.out.println("Semantic = " + semanticUnit[1]);
 			}
 		}
-	}	
-	
-	public boolean endInstance(){
-		input=null;
-		polysemyWord=null;
-		secondaryPolysemyWord=null;
-		word_pos_map=null;
-		semanticsList=null;
-		inputLinkedList=null;
-		matchedLongestWordForNoun=null;
-		matchedSemanticSentenceForNoun=null;
-		matchedLongestWordForVerb=null;
-		matchedSemanticSentenceForVerb=null;
-		rootWords=null;
+	}
+
+	public boolean endInstance() {
+		input = null;
+		polysemyWord = null;
+		secondaryPolysemyWord = null;
+		word_pos_map = null;
+		semanticsList = null;
+		inputLinkedList = null;
+		matchedLongestWordForNoun = null;
+		matchedSemanticSentenceForNoun = null;
+		matchedLongestWordForVerb = null;
+		matchedSemanticSentenceForVerb = null;
+		rootWords = null;
 		return true;
 	}
 }
