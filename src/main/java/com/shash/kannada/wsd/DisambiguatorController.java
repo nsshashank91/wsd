@@ -21,8 +21,8 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.jcraft.jsch.JSchException;
 
-/*@RestController
-@RequestMapping("/kannada/")*/
+@RestController
+@RequestMapping("/kannada/")
 public class DisambiguatorController {
 	
 	private String input;
@@ -46,6 +46,9 @@ public class DisambiguatorController {
 	private String matchedSemanticSentenceForVerb;
 
 	private Map<String, String> rootWords;
+	
+	private String laterNounMatchWord;
+	private String laterNounMeaning;
 	
 	@RequestMapping("disambiguate")
 	private String aataEegaShuru() throws IOException {
@@ -361,17 +364,28 @@ public class DisambiguatorController {
 								continue;
 							}
 						}
-						if (matchedLongestWordForNoun != null)
-							System.out.println("Matching word is "
-									+ matchedLongestWordForNoun);
-						if (matchedSemanticSentenceForNoun != null)
-							System.out.println("Matched meaning is "
-									+ matchedSemanticSentenceForNoun);
+						if (matchedLongestWordForNoun != null){
+							laterNounMatchWord = matchedLongestWordForNoun;
+							//System.out.println("Matching word is "+ matchedLongestWordForNoun);
+						}
+							
+						if (matchedSemanticSentenceForNoun != null){
+							laterNounMeaning = matchedSemanticSentenceForNoun;
+							//System.out.println("Matched meaning is "+ matchedSemanticSentenceForNoun);
+						}
 					}
 				}
 			}
 			System.out.println("Noun sense analyser");
 			this.nounSenseAnalysis(matchedLongestWordForNoun);
+		}
+		if(laterNounMatchWord!=null){
+			System.out.println("Matching word is "+laterNounMatchWord);
+			laterNounMatchWord = null;
+		}
+		if(laterNounMeaning!=null){
+			System.out.println("Matched meaning is "+laterNounMeaning);
+			laterNounMeaning = null;
 		}
 		this.endInstance();
 		return "disambiguated";

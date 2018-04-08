@@ -28,7 +28,7 @@ import com.google.common.collect.Multiset;
 import com.jcraft.jsch.JSchException;
 
 @RestController
-@RequestMapping("/kannada/")
+@RequestMapping("/kannada2/")
 public class KannadaController {
 
 	private String input;
