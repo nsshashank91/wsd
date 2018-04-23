@@ -17,7 +17,7 @@ public class ReadFromWordnet {
 		BufferedReader br = null;
 		try {
 			URL url = new URL(
-					"http://www.cfilt.iitb.ac.in/indowordnet/first?langno=6&queryword="
+					"http://tdil-dc.in/indowordnet/first?langno=6&queryword="
 							+ polysemyWord);
 			conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestMethod("GET");
@@ -83,7 +83,7 @@ public class ReadFromWordnet {
 		BufferedReader br = null;
 		try {
 			URL url = new URL(
-					"http://www.cfilt.iitb.ac.in/indowordnet/first?langno=6&queryword="
+					"http://tdil-dc.in/indowordnet/first?langno=6&queryword="
 							+ polysemyWord);
 			conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestMethod("GET");

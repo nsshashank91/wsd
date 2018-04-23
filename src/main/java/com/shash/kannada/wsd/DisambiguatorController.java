@@ -14,7 +14,10 @@ import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.common.collect.LinkedListMultimap;
@@ -51,7 +54,7 @@ public class DisambiguatorController {
 	private String laterNounMeaning;
 	
 	@RequestMapping("disambiguate")
-	private String aataEegaShuru() throws IOException {
+	private void aataEegaShuru() throws IOException {
 		this.obtainSemanticNet();
 		System.out.println("*********************");
 		System.out.println("Input is " + inputLinkedList.toString());
@@ -388,7 +391,7 @@ public class DisambiguatorController {
 			laterNounMeaning = null;
 		}
 		this.endInstance();
-		return "disambiguated";
+		//return "disambiguated";
 	}
 
 	private void nounSenseAnalysis(String matchedNounWord) {
@@ -618,7 +621,8 @@ public class DisambiguatorController {
 
 	}
 
-	@RequestMapping("preprocess")
+	@RequestMapping(value="preprocess",method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
+	@ResponseBody
 	private String assignPOSTagging() throws JSchException, IOException {
 		java.util.Properties config = new java.util.Properties();
 		config.put("StrictHostKeyChecking", "no");
@@ -628,7 +632,7 @@ public class DisambiguatorController {
 		this.extractPOSTagging();
 		this.identifyPolysemyWord();
 		this.readFromWordNet();
-		return "preprocessed";
+		return "callbackToken({'msg':'success'})";
 	}
 
 	private void obtainSemanticNet() throws IOException {
