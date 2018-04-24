@@ -53,8 +53,9 @@ public class DisambiguatorController {
 	private String laterNounMatchWord;
 	private String laterNounMeaning;
 	
-	@RequestMapping("disambiguate")
-	private void aataEegaShuru() throws IOException {
+	@RequestMapping(value="disambiguate",method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
+	@ResponseBody
+	private String aataEegaShuru() throws IOException {
 		this.obtainSemanticNet();
 		System.out.println("*********************");
 		System.out.println("Input is " + inputLinkedList.toString());
@@ -391,7 +392,7 @@ public class DisambiguatorController {
 			laterNounMeaning = null;
 		}
 		this.endInstance();
-		//return "disambiguated";
+		return "callbackToken({'msg':'dismabiguated'})";
 	}
 
 	private void nounSenseAnalysis(String matchedNounWord) {
