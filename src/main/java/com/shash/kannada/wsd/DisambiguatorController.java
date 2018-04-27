@@ -1,8 +1,16 @@
 package com.shash.kannada.wsd;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,8 +25,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
@@ -52,6 +62,51 @@ public class DisambiguatorController {
 	
 	private String laterNounMatchWord;
 	private String laterNounMeaning;
+	
+	@RequestMapping(value="uploadFile",method=RequestMethod.POST, produces=MediaType.APPLICATION_JSON_VALUE)
+	private void uploadFile(@RequestParam("file1") MultipartFile file){
+		BufferedReader br = null;
+		Writer out = null;
+		try{
+			System.out.println("inside file controller");
+			System.out.println(file.getName());
+			System.out.println(file.getSize());
+			 
+			br = new BufferedReader(new InputStreamReader(
+					file.getInputStream()));
+			out =  new BufferedWriter(new OutputStreamWriter(
+					new FileOutputStream("C:\\Users\\shashank\\Documents\\wsd\\wsd\\src\\main\\resources\\sen31"), "UTF-8"));
+
+			String output;
+			
+			while ((output = br.readLine()) != null) {
+				out.write(output);
+				System.out.println(output+"****");
+			}
+		}
+		catch(IOException e){
+			e.printStackTrace();
+		}
+		finally{
+			if(out!=null){
+				try {
+					out.flush();
+					out.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			if(br!=null){
+				try {
+					br.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 	
 	@RequestMapping(value="disambiguate",method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
