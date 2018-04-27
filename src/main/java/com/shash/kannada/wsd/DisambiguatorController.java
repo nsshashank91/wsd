@@ -64,7 +64,8 @@ public class DisambiguatorController {
 	private String laterNounMeaning;
 	
 	@RequestMapping(value="uploadFile",method=RequestMethod.POST, produces=MediaType.APPLICATION_JSON_VALUE)
-	private void uploadFile(@RequestParam("file1") MultipartFile file){
+	@ResponseBody
+	private String uploadFile(@RequestParam("file1") MultipartFile file){
 		BufferedReader br = null;
 		Writer out = null;
 		try{
@@ -106,6 +107,7 @@ public class DisambiguatorController {
 				}
 			}
 		}
+		return "callbackToken({'msg':'file uploaded'})";
 	}
 	
 	@RequestMapping(value="disambiguate",method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
