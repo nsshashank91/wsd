@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.MediaType;
@@ -61,6 +62,10 @@ public class DisambiguatorController {
 	private String matchedSemanticSentenceForVerb;
 
 	private Map<String, String> rootWords;
+	
+	private Result result;
+	
+	private JSONArray resultMeaningArray;
 	
 	private String laterNounMatchWord;
 	private String laterNounMeaning;
@@ -150,7 +155,8 @@ public class DisambiguatorController {
 		}
 		String posScenario;
 		String sense = null;
-		Result result = new Result();
+		result= new Result();
+		resultMeaningArray = new JSONArray();
 		result.setInput(input);
 		result.setPolysemyWord(polysemyWord);
 		if (posScenarios.contains("NN") && posScenarios.contains("VM")) {
@@ -249,12 +255,15 @@ public class DisambiguatorController {
 								continue;
 							}
 						}
-						if (matchedLongestWordForNoun != null)
+						if (matchedLongestWordForNoun != null){
 							System.out.println("Matching word is "
 									+ matchedLongestWordForNoun);
-						if (matchedSemanticSentenceForNoun != null)
+						}
+						if (matchedSemanticSentenceForNoun != null){
 							System.out.println("Matched meaning is "
 									+ matchedSemanticSentenceForNoun);
+							resultMeaningArray.put(matchedSemanticSentenceForNoun);
+						}
 					} else if (entry.getValue().equals("VM")) {
 						for (String[] semanticUnit : semanticsList) {
 							if (semanticUnit[0].equals("verb")) {
@@ -338,7 +347,7 @@ public class DisambiguatorController {
 						if (matchedSemanticSentenceForVerb != null){
 							System.out.println("Matched meaning is "
 									+ matchedSemanticSentenceForVerb);
-							result.setSense(matchedSemanticSentenceForVerb);
+							resultMeaningArray.put(matchedSemanticSentenceForVerb);
 						}
 					}
 				}
@@ -456,7 +465,7 @@ public class DisambiguatorController {
 		
 		if(laterNounMeaning!=null){
 			System.out.println("Matched meaning is "+laterNounMeaning);
-			result.setSense(laterNounMeaning);
+			resultMeaningArray.put(laterNounMeaning);
 			laterNounMeaning = null;
 		}
 		this.endInstance();
@@ -465,7 +474,7 @@ public class DisambiguatorController {
 		JSONObject jsonResult = new JSONObject();
 		jsonResult.put("input", result.getInput());
 		jsonResult.put("polysemy", result.getPolysemyWord());
-		jsonResult.put("sense", result.getSense());
+		jsonResult.put("sense", resultMeaningArray);
 		jsonObject.put("result", jsonResult);
 		return "callbackToken("+jsonObject+")";
 	}
@@ -529,6 +538,7 @@ public class DisambiguatorController {
 						|| nounLinkedWord.endsWith("ನ")||nounLinkedWord.endsWith("ಳ")||nounLinkedWord.endsWith("ರ")
 						|| nounLinkedWord.endsWith("ನಲ್ಲಿ")||nounLinkedWord.endsWith("ಳಲ್ಲಿ")||nounLinkedWord.endsWith("ರಲ್ಲಿ")
 						|| nounLinkedWord.endsWith("ನೇ")||nounLinkedWord.endsWith("ಳೇ")||nounLinkedWord.endsWith("ರೇ")) {
+					resultMeaningArray.put("ವ್ಯಕ್ತಿ  ಅಥವಾ ಪ್ರಾಣಿ ಅಥವಾ ವಸ್ತು ಅಥವಾ ಜಾಗ");
 					System.out.println("Matched meaning is ವ್ಯಕ್ತಿ  ಅಥವಾ ಪ್ರಾಣಿ ಅಥವಾ ವಸ್ತು ಅಥವಾ ಜಾಗ");
 				}
 				break;
@@ -542,7 +552,7 @@ public class DisambiguatorController {
 						|| nounWord.endsWith("ನ")||nounWord.endsWith("ಳ")||nounWord.endsWith("ರ")
 						|| nounWord.endsWith("ನಲ್ಲಿ")||nounWord.endsWith("ಳಲ್ಲಿ")||nounWord.endsWith("ರಲ್ಲಿ")
 						|| nounWord.endsWith("ನೇ")||nounWord.endsWith("ಳೇ")||nounWord.endsWith("ರೇ")) {
-					System.out.println("Matched meaning is ವ್ಯಕ್ತಿ  ಅಥವಾ ಪ್ರಾಣಿ ಅಥವಾ ವಸ್ತು ಅಥವಾ ಜಾಗ");
+					resultMeaningArray.put("ವ್ಯಕ್ತಿ  ಅಥವಾ ಪ್ರಾಣಿ ಅಥವಾ ವಸ್ತು ಅಥವಾ ಜಾಗ");
 				}
 				break;
 			}
