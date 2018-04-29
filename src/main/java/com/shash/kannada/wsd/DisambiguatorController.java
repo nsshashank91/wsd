@@ -22,6 +22,8 @@ import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -112,7 +114,7 @@ public class DisambiguatorController {
 	
 	@RequestMapping(value="disambiguate",method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
-	private String aataEegaShuru() throws IOException {
+	private String aataEegaShuru() throws IOException, JSONException {
 		this.obtainSemanticNet();
 		System.out.println("*********************");
 		System.out.println("Input is " + inputLinkedList.toString());
@@ -147,6 +149,10 @@ public class DisambiguatorController {
 			}
 		}
 		String posScenario;
+		String sense = null;
+		Result result = new Result();
+		result.setInput(input);
+		result.setPolysemyWord(polysemyWord);
 		if (posScenarios.contains("NN") && posScenarios.contains("VM")) {
 			posScenario = "differentPOS";
 		} else {
@@ -325,12 +331,15 @@ public class DisambiguatorController {
 								continue;
 							}
 						}
-						if (matchedLongestWordForVerb != null)
+						if (matchedLongestWordForVerb != null){
 							System.out.println("Matching word is "
 									+ matchedLongestWordForVerb);
-						if (matchedSemanticSentenceForVerb != null)
+						}
+						if (matchedSemanticSentenceForVerb != null){
 							System.out.println("Matched meaning is "
 									+ matchedSemanticSentenceForVerb);
+							result.setSense(matchedSemanticSentenceForVerb);
+						}
 					}
 				}
 			}
@@ -444,12 +453,21 @@ public class DisambiguatorController {
 			System.out.println("Matching word is "+laterNounMatchWord);
 			laterNounMatchWord = null;
 		}
+		
 		if(laterNounMeaning!=null){
 			System.out.println("Matched meaning is "+laterNounMeaning);
+			result.setSense(laterNounMeaning);
 			laterNounMeaning = null;
 		}
 		this.endInstance();
-		return "callbackToken({'msg':'dismabiguated'})";
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("msg", "disambiguated");
+		JSONObject jsonResult = new JSONObject();
+		jsonResult.put("input", result.getInput());
+		jsonResult.put("polysemy", result.getPolysemyWord());
+		jsonResult.put("sense", result.getSense());
+		jsonObject.put("result", jsonResult);
+		return "callbackToken("+jsonObject+")";
 	}
 
 	private void nounSenseAnalysis(String matchedNounWord) {
