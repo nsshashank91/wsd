@@ -22,7 +22,7 @@ public class ReadFromWordnet {
 			conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestMethod("GET");
 			fw = new FileWriter(
-					"C:\\Users\\shashank\\Documents\\inh\\KannadaPolysemyImplementation2\\"
+					"C:\\Users\\shashank\\Documents\\inh\\KannadaPolysemyImplementation3\\"
 							+ fileName);
 			bw = new BufferedWriter(fw);
 			if (conn.getResponseCode() != 200) {
@@ -88,7 +88,7 @@ public class ReadFromWordnet {
 			conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestMethod("GET");
 			fw = new FileWriter(
-					"C:\\Users\\shashank\\Documents\\inh\\KannadaPolysemyImplementation\\semantic.txt");
+					"C:\\Users\\shashank\\Documents\\inh\\KannadaPolysemyImplementation3\\semantic.txt");
 			bw = new BufferedWriter(fw);
 			if (conn.getResponseCode() != 200) {
 				throw new RuntimeException("Failed : HTTP error code : "
