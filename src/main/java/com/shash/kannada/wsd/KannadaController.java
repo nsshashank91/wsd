@@ -627,7 +627,7 @@ public class KannadaController {
 			try {
 				i++;
 				Files.delete(Paths
-						.get("C:\\Users\\shashank\\Documents\\inh\\KannadaPolysemyImplementation2\\semantic"
+						.get("C:\\Users\\shashank\\Documents\\inh\\KannadaPolysemyImplementation3\\semantic"
 								+ i + ".txt"));
 			} catch (IOException e) {
 				e.printStackTrace();
