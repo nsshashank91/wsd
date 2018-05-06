@@ -19,7 +19,12 @@ import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.common.collect.LinkedListMultimap;
@@ -63,7 +68,8 @@ public class KannadaController {
 	
 	private String inputPolysemyPosTag;
 
-	@RequestMapping("semantics")
+	@RequestMapping(value="semantics",method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
+	@ResponseBody
 	private String semantics() throws IOException {
 		BufferedReader brInput = new BufferedReader(
 				new FileReader(
@@ -105,7 +111,7 @@ public class KannadaController {
 				System.out.println("POS = " + next.getValue());
 			}
 		}
-		return "semantics obtained";
+		return "callbackToken({'msg':'semantics obtained'})";
 	}
 
 	private String innondAataEegaShuru() throws IOException {
@@ -172,8 +178,9 @@ public class KannadaController {
 		return "semantics obtained";
 	}
 
-	@RequestMapping("disambiguate")
-	private String aataEegaShuru() throws IOException {
+	@RequestMapping(value="disambiguate",method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
+	@ResponseBody
+	private String aataEegaShuru() throws IOException, JSONException {
 		List<String> inputWordsList = null;
 		String matchingWordForNoun = null;
 		BufferedReader brInput = new BufferedReader(
@@ -220,6 +227,7 @@ public class KannadaController {
 		}
 		System.out.println("**** Root POS Polysemy word ****"+inputPolysemyWord);
 		System.out.println("**** Root POS Polysemy POS Tag ****"+inputPolysemyPosTag);
+		JSONObject jsonObject = new JSONObject();
 		if (inputPolysemyPosTag.startsWith("V")) {
 			for (Map<String, String> posSemanticMapObj : semanticSet) {
 				Iterator<Entry<String, String>> iterator = posSemanticMapObj.entrySet().iterator();
@@ -230,8 +238,16 @@ public class KannadaController {
 					matchedSemanticSentenceForVerb = semantic;
 					System.out.println("Matched Meaning is "
 							+ matchedSemanticSentenceForVerb);
+					jsonObject.put("msg", "disambiguated");
+					jsonObject.put("input", input);
+					jsonObject.put("polysemy", polysemyWord);
+					jsonObject.put("sense", matchedSemanticSentenceForVerb);
+					System.out.println("*************");
+					System.out.println(input);
+					System.out.println(polysemyWord);
+					System.out.println(matchedSemanticSentenceForVerb);
 					this.endInstance();
-					return "disambiguated";
+					return "callbackToken("+jsonObject+")";
 				}
 			}
 		}
@@ -315,12 +331,22 @@ public class KannadaController {
 				}
 			}
 		}
-		if (matchedLongestWordForNoun != null)
+		if (matchedLongestWordForNoun != null){
 			System.out.println("Matching word is "+ matchedLongestWordForNoun);
-		if (matchedSemanticSentenceForNoun != null)
+		}
+		if (matchedSemanticSentenceForNoun != null){
 			System.out.println("Matched meaning is "+ matchedSemanticSentenceForNoun);
+			jsonObject.put("msg", "disambiguated");
+			jsonObject.put("input", input);
+			jsonObject.put("polysemy", polysemyWord);
+			jsonObject.put("sense", matchedSemanticSentenceForNoun);
+			System.out.println("*************");
+			System.out.println(input);
+			System.out.println(polysemyWord);
+			System.out.println(matchedSemanticSentenceForNoun);
+		}
 		this.endInstance();
-		return "disambiguated";
+		return "callbackToken("+jsonObject+")";
 	}
 
 	private void nounSenseAnalysis(String matchedNounWord) {
@@ -594,7 +620,8 @@ public class KannadaController {
 
 	}
 
-	@RequestMapping("preprocess")
+	@RequestMapping(value="preprocess",method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
+	@ResponseBody
 	private String assignPOSTagging() throws JSchException, IOException {
 		java.util.Properties config = new java.util.Properties();
 		config.put("StrictHostKeyChecking", "no");
@@ -603,7 +630,7 @@ public class KannadaController {
 		schObj.sshCon(config);
 		this.extractPOSTagging();
 		this.processRootWords();
-		return "preprocessed";
+		return "callbackToken({'msg':'success'})";
 	}
 
 	private void processRootWords() {
